@@ -1,0 +1,198 @@
+{
+  "milestone_1": {
+    "architecture": {
+      "client": "VS Code/API client",
+      "controller": {
+        "port": 8000,
+        "role": "Core / Controller"
+      },
+      "workers": [
+        {
+          "url": "http://node1:8001",
+          "role": "Edge / Worker"
+        },
+        {
+          "url": "http://node2:8002",
+          "role": "Edge / Worker"
+        }
+      ],
+      "communication": "REST/HTTP (async httpx)"
+    },
+    "workers_before": [
+      {
+        "node": "node1",
+        "node_id": 2,
+        "host": "9862b8127cf1",
+        "cpu_percent": 0.0,
+        "memory_percent": 12.9,
+        "available_memory_mb": 6450.7,
+        "allocated_slices": 1,
+        "logical_clock": 11,
+        "leader": {
+          "name": "node2",
+          "id": 3
+        }
+      },
+      {
+        "node": "node2",
+        "node_id": 3,
+        "host": "178dffcc643c",
+        "cpu_percent": 0.0,
+        "memory_percent": 12.9,
+        "available_memory_mb": 6450.7,
+        "allocated_slices": 0,
+        "logical_clock": 0,
+        "leader": {
+          "name": "node2",
+          "id": 3
+        }
+      }
+    ],
+    "slice_creation": {
+      "status": "created",
+      "selected_worker": "http://node2:8002",
+      "allocation": {
+        "status": "allocated",
+        "node": "node2",
+        "slice": {
+          "slice_id": "slice-m1-demo",
+          "cpu_percent": 20,
+          "memory_mb": 128,
+          "bandwidth_mbps": 10,
+          "priority": 5
+        },
+        "logical_clock": 1
+      },
+      "scheduler": "resource-aware round-robin"
+    }
+  },
+  "milestone_2": {
+    "successful_tasks": 50,
+    "failed_tasks": 0,
+    "throughput_tasks_per_second": 6.4844,
+    "average_latency_seconds": 0.1542,
+    "jitter_seconds": 0.0545,
+    "packet_loss_percent": 0.0,
+    "worker_measurements": [
+      {
+        "node": "node1",
+        "node_id": 2,
+        "host": "9862b8127cf1",
+        "cpu_percent": 0.0,
+        "memory_percent": 13.0,
+        "available_memory_mb": 6439.08,
+        "allocated_slices": 1,
+        "logical_clock": 36,
+        "leader": {
+          "name": "node2",
+          "id": 3
+        }
+      },
+      {
+        "node": "node2",
+        "node_id": 3,
+        "host": "178dffcc643c",
+        "cpu_percent": 0.0,
+        "memory_percent": 13.0,
+        "available_memory_mb": 6439.08,
+        "allocated_slices": 1,
+        "logical_clock": 26,
+        "leader": {
+          "name": "node2",
+          "id": 3
+        }
+      }
+    ]
+  },
+  "milestone_3": {
+    "deployment": {
+      "layers": [
+        {
+          "layer": "Client",
+          "component": "API client"
+        },
+        {
+          "layer": "Core",
+          "component": "Controller / Scheduler / Resource Manager"
+        },
+        {
+          "layer": "Edge",
+          "component": "Worker http://node1:8001"
+        },
+        {
+          "layer": "Edge",
+          "component": "Worker http://node2:8002"
+        }
+      ]
+    }
+  },
+  "milestone_4": {
+    "leader_election": {
+      "algorithm": "Bully",
+      "initiator": "controller",
+      "participants": [
+        "controller",
+        "node1",
+        "node2"
+      ],
+      "leader": "node2",
+      "leader_as_seen_by_each_node": {
+        "controller": "node2",
+        "node1": "node2",
+        "node2": "node2"
+      },
+      "consistent": true,
+      "coordination_message_count": 7,
+      "election_time_seconds": 0.4276
+    },
+    "logical_clock_event": {
+      "event": "slice-created",
+      "logical_clock": 2,
+      "acknowledgements": [
+        {
+          "node": "node1",
+          "logical_clock": 37,
+          "event": "slice-created"
+        },
+        {
+          "node": "node2",
+          "logical_clock": 27,
+          "event": "slice-created"
+        }
+      ],
+      "synchronization_delay_seconds": 0.015082313000220893
+    }
+  },
+  "failure_demo": {
+    "leader_before": "node2",
+    "detected_offline": [
+      "http://node2:8002"
+    ],
+    "re_election": {
+      "algorithm": "Bully",
+      "initiator": "controller",
+      "participants": [
+        "controller",
+        "node1"
+      ],
+      "leader": "node1",
+      "leader_as_seen_by_each_node": {
+        "controller": "node1",
+        "node1": "node1"
+      },
+      "consistent": true,
+      "coordination_message_count": 5,
+      "election_time_seconds": 2.3628
+    },
+    "tasks_during_failure": {
+      "successful_tasks": 4,
+      "failed_tasks": 0,
+      "throughput_tasks_per_second": 0.5056,
+      "average_latency_seconds": 1.9777,
+      "jitter_seconds": 1.8878,
+      "packet_loss_percent": 0.0
+    },
+    "mttr_seconds": 15.197,
+    "leader_after_recovery": "node2"
+  }
+}

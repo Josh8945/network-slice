@@ -10,7 +10,10 @@ Distributed workload execution with throughput, latency, jitter, task-failure/pa
 Controller/worker service decomposition and Client → Core/Controller → Edge/Workers deployment.
 
 ## Milestone 4
-Leader-election demonstration, logical clock, coordination messages and synchronization delay.
+Bully leader election (ELECTION / OK / COORDINATOR messages, worst-case message count measured, consistency checked across nodes), Lamport logical clock, synchronization delay.
+
+## Deployment
+Docker Compose: one container per node on a private bridge network, addresses from environment variables. The controller calls workers with async httpx and queries all workers in parallel. Tasks fail over to the next worker if one is down.
 
 ## Scope
 Prototype for the first four milestones; not a production telecom-grade system.

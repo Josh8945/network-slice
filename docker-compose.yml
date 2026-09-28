@@ -1,0 +1,55 @@
+# Controller (core) + two edge workers on one private bridge network.
+# Containers find each other by service name (Docker's built-in DNS),
+# so no IP address appears anywhere in the code.
+x-node: &node
+  build: .
+  image: network-slicing:latest
+  networks: [telecom_net]
+  restart: "no"   # keep failures visible for the fault-tolerance demo
+  healthcheck:
+    test: ["CMD", "python", "-c", "import os,urllib.request; urllib.request.urlopen('http://127.0.0.1:'+os.environ['PORT']+'/health')"]
+    interval: 3s
+    timeout: 2s
+    retries: 10
+
+services:
+  controller:
+    <<: *node
+    container_name: controller
+    command: ["python", "service.py", "8000"]
+    ports: ["8000:8000"]
+    environment:
+      PORT: "8000"
+      NODE_NAME: controller
+      NODE_ID: "1"
+      WORKER_NODES: http://node1:8001,http://node2:8002
+      PEERS: node1=2=http://node1:8001,node2=3=http://node2:8002
+    depends_on:
+      node1: { condition: service_healthy }
+      node2: { condition: service_healthy }
+
+  node1:
+    <<: *node
+    container_name: node1
+    command: ["python", "service.py", "8001"]
+    ports: ["8001:8001"]
+    environment:
+      PORT: "8001"
+      NODE_NAME: node1
+      NODE_ID: "2"
+      PEERS: controller=1=http://controller:8000,node2=3=http://node2:8002
+
+  node2:
+    <<: *node
+    container_name: node2
+    command: ["python", "service.py", "8002"]
+    ports: ["8002:8002"]
+    environment:
+      PORT: "8002"
+      NODE_NAME: node2
+      NODE_ID: "3"
+      PEERS: controller=1=http://controller:8000,node1=2=http://node1:8001
+
+networks:
+  telecom_net:
+    driver: bridge

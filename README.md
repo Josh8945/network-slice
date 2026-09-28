@@ -260,9 +260,13 @@ The platform demonstrates coordination between the controller and worker nodes t
 
 2. Leader Election
 
-A lightweight leader-election demonstration is implemented to identify a coordination leader among participating nodes.
+The Bully algorithm elects a coordinator. Every node has a numeric ID (controller=1, node1=2, node2=3):
 
-The current implementation is intended as a prototype of the coordination concept and can later be replaced by a more robust distributed consensus algorithm.
+1. The initiator sends ELECTION to every node with a higher ID.
+2. Any live higher node replies OK and starts its own election.
+3. A node that gets no OK wins and broadcasts COORDINATOR to all nodes.
+
+Message complexity is O(n²) in the worst case (lowest ID starts): n(n−1)/2 ELECTION + (n−1) COORDINATOR messages, which is 5 for our 3 nodes. The demo starts from the lowest ID, so it measures that worst case. It also checks consistency, meaning every node reports the same leader. If node2 is stopped, a new election picks node1.
 
 3. Logical Clocks
 
@@ -320,6 +324,22 @@ MILESTONE 4: ✓ leader election / logical clock
 Detailed experimental results are saved to:
 
 results/milestone_results.json
+
+🐳 Docker Demonstration
+
+Each node runs in its own container on a private bridge network (`telecom_net`). The nodes find each other by service name through Docker's DNS, so no IP address is hardcoded. All addresses come from environment variables in `docker-compose.yml` (`WORKER_NODES`, `PEERS`, `NODE_ID`).
+
+docker compose up -d --build      # build the image, start controller + node1 + node2
+docker compose ps                 # all three should be "healthy"
+python run_demo.py --docker       # milestones 1-4 + failure demo
+docker compose down               # stop everything
+
+The `--docker` run adds a failure demonstration (Failure → Detection → Recovery → Service Restoration):
+it stops node2, the controller detects it offline, the Bully election picks node1, tasks fail over to node1,
+then node2 is restarted and MTTR is measured. Results are saved to results/docker_results.json.
+
+Manual failure demo in class: `docker stop node2`, then POST http://localhost:8000/coordination/election
+(or use the Swagger UI at http://localhost:8000/docs), then `docker start node2`.
 
 📁 Repository Structure
 
